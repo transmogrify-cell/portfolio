@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <title>Himanshu Chandela — Software Engineer &amp; Competitive Programmer</title>
 <meta name="description" content="Portfolio of Himanshu Chandela — Software Engineer, Competitive Programmer, B.Tech IT @ NSUT. Backend, distributed systems and applied AI.">
 <meta name="author" content="Himanshu Chandela">
@@ -27,7 +27,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@300;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="himanshu-photo.webp" type="image/webp" fetchpriority="high">
 
-<script>document.documentElement.classList.add('js');</script>
+<script>
+/* Resolve the theme before first paint so there is no flash of the wrong one. */
+(function(){
+  var r = document.documentElement;
+  r.classList.add('js');
+  var saved = null;
+  try { saved = localStorage.getItem('hc-theme'); } catch(e){}
+  var dark = saved ? saved === 'dark'
+                   : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme = dark ? 'dark' : 'light';
+  if(dark){
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute('content', '#12120F');
+  }
+})();
+</script>
 <style>
   :root{
     --bg:#C9C6BC;
@@ -37,9 +52,21 @@
     --ink-soft:#46433B;
     --ink-faint:#545143;
     --yellow:#EDD22E;
-    --dark:#1B1A16;
+    --dark:#1B1A16;            /* chip / ticker surface — stays dark in both themes */
+    --heading:#1B1A16;         /* display headings */
+    --on-yellow:#1B1A16;       /* text sitting ON the yellow accent — never flips */
+    --chip-ink:#C4C1B5;
     --border:rgba(33,31,26,0.16);
     --border-strong:rgba(33,31,26,0.3);
+    --stroke:rgba(33,31,26,0.5);
+    --stroke-soft:rgba(33,31,26,0.45);
+    --yellow-edge:#211F1A;     /* outline that keeps yellow legible on pale ground */
+    --live:#5d7033;
+    --shadow:0 10px 26px rgba(33,31,26,0.08);
+    --photo-filter:grayscale(0.15) contrast(1.05) saturate(0.92);
+    --mesh-line:rgba(33,31,26,0.085);
+    --mesh-glow:237,210,46;
+    --noise:0.04;
     --display:'Big Shoulders Display', 'Arial Narrow', sans-serif;
     --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     --sans:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -48,6 +75,38 @@
     --ticker-h:38px;
     --ease:cubic-bezier(.22,.7,.26,1);
     --ease-out:cubic-bezier(.16,1,.3,1);
+  }
+
+  /* ================= NIGHT MODE ================= */
+  /* Only tokens are redefined — no component rule is duplicated per theme.
+     --on-yellow never flips: the accent stays bright, so text on it stays dark. */
+  :root[data-theme="dark"]{
+    --bg:#12120F;
+    --bg-panel:#1B1A16;
+    --ink:#E9E6DA;
+    --ink-soft:#ADA99B;
+    --ink-faint:#8A8676;
+    --heading:#F2EFE3;
+    --dark:#26241D;
+    --chip-ink:#D6D3C6;
+    --border:rgba(240,237,226,0.13);
+    --border-strong:rgba(240,237,226,0.26);
+    --stroke:rgba(244,241,232,0.45);
+    --stroke-soft:rgba(244,241,232,0.34);
+    --yellow-edge:rgba(18,18,15,0.60);
+    --live:#A9C965;
+    --shadow:0 14px 34px rgba(0,0,0,0.55);
+    --photo-filter:grayscale(0.24) contrast(1.06) saturate(0.82) brightness(0.80);
+    --mesh-line:rgba(244,241,232,0.075);
+    --noise:0.05;
+  }
+
+  /* The global cross-fade is only mounted while the theme is actually switching,
+     so it never sits on top of ordinary hover transitions. */
+  html.theming *,html.theming *::before,html.theming *::after{
+    transition:background-color .5s var(--ease), color .5s var(--ease),
+               border-color .5s var(--ease), fill .5s var(--ease),
+               stroke .5s var(--ease), box-shadow .5s var(--ease) !important;
   }
 
   *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
@@ -72,7 +131,7 @@
     content:"";
     position:fixed; inset:0;
     background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity:0.04; pointer-events:none; z-index:999;
+    opacity:var(--noise); pointer-events:none; z-index:999;
   }
 
   ::-webkit-scrollbar{ width:10px; height:10px; }
@@ -85,7 +144,7 @@
   ul{ list-style:none; }
   img{ max-width:100%; display:block; }
   button{ font:inherit; color:inherit; }
-  ::selection{ background:var(--yellow); color:var(--ink); }
+  ::selection{ background:var(--yellow); color:var(--on-yellow); }
   :focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
   .mono{ font-family:var(--mono); }
 
@@ -104,7 +163,7 @@
     background:var(--bg);
     transition:box-shadow .35s var(--ease);
   }
-  body.scrolled .topbar{ box-shadow:0 10px 26px rgba(33,31,26,0.08); }
+  body.scrolled .topbar{ box-shadow:var(--shadow); }
   .tb-left{ display:flex; align-items:center; gap:36px; min-width:0; }
   .logo{ font-family:var(--mono); font-weight:700; font-size:15px; letter-spacing:0.02em; white-space:nowrap; }
   .logo:hover{ color:var(--ink-soft); }
@@ -115,7 +174,7 @@
   .tb-right{ display:flex; align-items:center; gap:24px; }
   .status-block{ font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); text-align:right; line-height:1.5; display:none; }
   .status-block b{ color:var(--ink); }
-  .status-block .live{ color:#5d7033; font-weight:700; }
+  .status-block .live{ color:var(--live); font-weight:700; }
   .status-block .live::before{
     content:'●'; margin-right:4px; display:inline-block;
     animation:pulse 2.4s ease-in-out infinite;
@@ -125,7 +184,7 @@
   .menu-btn{
     width:40px; height:40px; border-radius:50%; background:var(--yellow); border:1px solid var(--ink);
     font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:0.02em; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; color:var(--ink); flex:none;
+    display:flex; align-items:center; justify-content:center; color:var(--on-yellow); flex:none;
     transition:transform .25s var(--ease), box-shadow .25s var(--ease);
     will-change:transform;
   }
@@ -140,6 +199,7 @@
   }
   .sb-desc{ font-family:var(--mono); font-size:10.5px; line-height:1.7; color:var(--ink-soft); letter-spacing:0.02em; text-transform:uppercase; }
   .sb-hex{ margin:22px 0 40px; }
+  .sb-hex polygon{ stroke:var(--ink-soft); stroke-opacity:.75; }
   .sb-hex polygon{ transition:transform .6s var(--ease); transform-origin:50% 50%; }
   .sidebar:hover .sb-hex polygon{ transform:rotate(60deg); }
   .sb-nav{ display:flex; flex-direction:column; gap:4px; }
@@ -159,7 +219,7 @@
   .sb-nav a:hover{ color:var(--ink); transform:translateX(3px); }
   .sb-nav a.active{ color:var(--ink); }
   .sb-nav a.active::before,.sb-nav a:hover::before{ transform:scaleY(1); }
-  .sb-nav a .plus{ color:var(--yellow); font-weight:700; -webkit-text-stroke:0.5px var(--ink); transition:transform .3s var(--ease); display:inline-block; }
+  .sb-nav a .plus{ color:var(--yellow); font-weight:700; -webkit-text-stroke:0.5px var(--yellow-edge); transition:transform .3s var(--ease); display:inline-block; }
   .sb-nav a:hover .plus{ transform:rotate(90deg); }
   .sb-foot{ margin-top:auto; padding-top:32px; font-family:var(--mono); font-size:10px; color:var(--ink-faint); line-height:1.8; }
   .navtoggle{ display:none; }
@@ -188,7 +248,7 @@
   .ticker:hover .ticker-track,.ticker:focus-within .ticker-track{ animation-play-state:paused; }
   .ticker-group{
     display:flex; align-items:center; gap:46px; padding-right:46px;
-    white-space:nowrap; font-family:var(--mono); font-size:11px; color:#C4C1B5;
+    white-space:nowrap; font-family:var(--mono); font-size:11px; color:var(--chip-ink);
     letter-spacing:0.02em;
   }
   .ticker-group b{ color:var(--yellow); font-weight:700; }
@@ -212,33 +272,33 @@
   .hero-name{
     font-family:var(--display); font-weight:700; text-transform:uppercase;
     font-size:clamp(3.2rem, 8vw, 7.5rem); line-height:0.82; letter-spacing:-0.01em; color:var(--cream);
-    -webkit-text-stroke:1px rgba(33,31,26,0.5);
+    -webkit-text-stroke:1px var(--stroke);
   }
   .hero-name .last{
-    display:block; font-weight:300; color:transparent; -webkit-text-stroke:1.5px rgba(33,31,26,0.45);
+    display:block; font-weight:300; color:transparent; -webkit-text-stroke:1.5px var(--stroke-soft);
     margin-top:-0.06em;
   }
   /* FIX: without -webkit-text-stroke support the surname rendered invisible. */
   @supports not (-webkit-text-stroke: 1px #000){
-    .hero-name{ color:var(--dark); }
+    .hero-name{ color:var(--heading); }
     .hero-name .last{ color:var(--ink-soft); }
   }
 
   .hero-lines{ margin-top:30px; max-width:360px; }
   .hero-lines p{ font-size:14px; line-height:1.6; color:var(--ink); font-weight:500; margin-bottom:14px; }
   /* negative right margin keeps the following period tight against the mark */
-  .hero-lines p b{ color:var(--dark); background:var(--yellow); padding:0 4px; margin-right:-3px; font-weight:600; }
+  .hero-lines p b{ color:var(--on-yellow); background:var(--yellow); padding:0 4px; margin-right:-3px; font-weight:600; }
 
   .hero-stat{ margin-top:auto; padding-top:40px; }
-  .hero-stat .n{ font-family:var(--display); font-weight:700; font-size:clamp(2.6rem,5vw,4.2rem); line-height:0.9; color:var(--dark); font-variant-numeric:tabular-nums; }
-  .hero-stat .y{ color:var(--yellow); -webkit-text-stroke:0.6px var(--ink); }
+  .hero-stat .n{ font-family:var(--display); font-weight:700; font-size:clamp(2.6rem,5vw,4.2rem); line-height:0.9; color:var(--heading); font-variant-numeric:tabular-nums; }
+  .hero-stat .y{ color:var(--yellow); -webkit-text-stroke:0.6px var(--yellow-edge); }
   .hero-stat .l{ font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); letter-spacing:0.04em; margin-top:4px; }
 
   .hero-media{ position:relative; overflow:hidden; background:var(--bg-panel); }
   .hero-media picture,.hero-media img{ width:100%; height:100%; display:block; }
   .hero-media img{
     object-fit:cover; object-position:60% 22%;
-    filter:grayscale(0.15) contrast(1.05) saturate(0.92);
+    filter:var(--photo-filter);
   }
   .hero-media::after{
     content:''; position:absolute; inset:0; pointer-events:none;
@@ -259,8 +319,8 @@
     will-change:transform;
   }
   .hero-cta:hover,.hero-cta:focus-within{ transform:translate(-4px,-4px); box-shadow:6px 6px 0 var(--ink); }
-  .hero-cta .k{ font-family:var(--display); font-weight:700; font-size:1.35rem; text-transform:uppercase; line-height:1.05; color:var(--ink); }
-  .hero-cta a{ display:inline-block; margin-top:14px; font-family:var(--mono); font-size:11px; letter-spacing:0.04em; text-decoration:underline; color:var(--ink); }
+  .hero-cta .k{ font-family:var(--display); font-weight:700; font-size:1.35rem; text-transform:uppercase; line-height:1.05; color:var(--on-yellow); }
+  .hero-cta a{ display:inline-block; margin-top:14px; font-family:var(--mono); font-size:11px; letter-spacing:0.04em; text-decoration:underline; color:var(--on-yellow); }
 
   .thumb-card{
     position:absolute; left:0; bottom:0; width:230px; display:flex;
@@ -304,7 +364,7 @@
   .sec-eyebrow::before{ content:''; width:26px; height:1px; background:var(--yellow); box-shadow:0 0 0 .5px var(--border-strong); }
   .sec-title{
     font-family:var(--display); font-weight:700; text-transform:uppercase; letter-spacing:-0.01em;
-    font-size:clamp(2.2rem,4.4vw,4rem); line-height:0.92; margin-bottom:48px; color:var(--dark); text-wrap:balance;
+    font-size:clamp(2.2rem,4.4vw,4rem); line-height:0.92; margin-bottom:48px; color:var(--heading); text-wrap:balance;
   }
 
   /* ---- EXPERIENCE ---- */
@@ -319,8 +379,8 @@
   .xp-when{ font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); margin-top:18px; line-height:1.7; }
   .xp-body li{ font-size:14.5px; line-height:1.7; color:var(--ink); margin-bottom:16px; padding-left:20px; position:relative; }
   .xp-body li:last-child{ margin-bottom:0; }
-  .xp-body li::before{ content:'//'; position:absolute; left:0; color:var(--yellow); font-family:var(--mono); font-weight:700; -webkit-text-stroke:0.4px var(--ink); font-size:12px; top:2px; }
-  .xp-body b{ background:var(--yellow); padding:0 3px; font-weight:600; }
+  .xp-body li::before{ content:'//'; position:absolute; left:0; color:var(--yellow); font-family:var(--mono); font-weight:700; -webkit-text-stroke:0.4px var(--yellow-edge); font-size:12px; top:2px; }
+  .xp-body b{ background:var(--yellow); color:var(--on-yellow); padding:0 3px; font-weight:600; }
 
   /* ---- PROJECTS ---- */
   .proj-list{ display:flex; flex-direction:column; border-top:1px solid var(--border-strong); }
@@ -354,17 +414,17 @@
   .stat-cell:hover{ background-color:var(--yellow); }
   .stat-cell:last-child{ border-right:none; }
   .stat-cell .n{ font-family:var(--display); font-weight:700; font-size:clamp(1.8rem,3.2vw,2.6rem); line-height:1; font-variant-numeric:tabular-nums; }
-  .stat-cell .n .y{ color:var(--yellow); -webkit-text-stroke:0.6px var(--ink); transition:color .35s var(--ease), -webkit-text-stroke-color .35s var(--ease); }
+  .stat-cell .n .y{ color:var(--yellow); -webkit-text-stroke:0.6px var(--yellow-edge); transition:color .35s var(--ease), -webkit-text-stroke-color .35s var(--ease); }
   /* FIX: the yellow figure used to turn cream on a yellow hover fill — invisible. */
-  .stat-cell:hover .n .y{ color:var(--dark); -webkit-text-stroke-color:var(--dark); }
+  .stat-cell:hover .n .y{ color:var(--on-yellow); -webkit-text-stroke-color:var(--on-yellow); }
   .stat-cell .l{ font-family:var(--mono); font-size:10px; color:var(--ink-soft); margin-top:8px; letter-spacing:0.02em; line-height:1.5; transition:color .35s var(--ease); }
-  .stat-cell:hover .l{ color:var(--dark); }
+  .stat-cell:hover .l{ color:var(--on-yellow); }
 
   .rank-strip{ display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--border-strong); }
   .rank-cell{ padding:32px 26px; border-right:1px solid var(--border-strong); }
   .rank-cell:last-child{ border-right:none; }
   .rank-cell .platform{ font-family:var(--mono); font-size:11px; letter-spacing:0.05em; color:var(--ink-soft); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
-  .rank-cell .platform em{ font-style:normal; background:var(--yellow); padding:2px 7px; font-size:10px; font-weight:700; color:var(--ink); white-space:nowrap; }
+  .rank-cell .platform em{ font-style:normal; background:var(--yellow); padding:2px 7px; font-size:10px; font-weight:700; color:var(--on-yellow); white-space:nowrap; }
   .rank-cell .rating{ font-family:var(--display); font-weight:700; font-size:2.6rem; line-height:0.9; font-variant-numeric:tabular-nums; }
   .rank-cell .sub{ font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); margin:8px 0 16px; }
   .rank-underline{ height:2px; background:var(--border-strong); position:relative; margin-bottom:14px; overflow:hidden; }
@@ -394,7 +454,7 @@
   .edu-panel{ border:1px solid var(--border-strong); padding:40px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px; background:var(--bg-panel); }
   .edu-panel h3{ font-family:var(--display); font-weight:600; font-size:1.9rem; text-transform:uppercase; line-height:1; }
   .edu-panel .loc{ font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); margin-top:10px; }
-  .edu-panel .degree{ font-family:var(--mono); font-size:11.5px; margin-top:14px; background:var(--yellow); display:inline-block; padding:3px 8px; }
+  .edu-panel .degree{ font-family:var(--mono); font-size:11.5px; margin-top:14px; background:var(--yellow); color:var(--on-yellow); display:inline-block; padding:3px 8px; }
   .edu-right{ text-align:right; }
   .edu-right .cgpa{ font-family:var(--display); font-weight:700; font-size:2.6rem; line-height:1; font-variant-numeric:tabular-nums; }
   .edu-right .yrs{ font-family:var(--mono); font-size:11px; color:var(--ink-faint); margin-top:6px; }
@@ -425,7 +485,7 @@
      beige page — about 1.6:1, i.e. unreadable. Only the arrow is yellow now. */
   .contact-list a .arrow{ color:var(--ink); text-align:right; overflow-wrap:anywhere; transition:color .3s var(--ease); }
   .contact-list a:hover .arrow,.contact-list a:focus-visible .arrow{ color:var(--yellow); }
-  .contact-list a .arrow i{ font-style:normal; color:var(--yellow); -webkit-text-stroke:0.4px var(--ink); margin-left:4px; }
+  .contact-list a .arrow i{ font-style:normal; color:var(--yellow); -webkit-text-stroke:0.4px var(--yellow-edge); margin-left:4px; }
   .contact-list a:hover .arrow i{ -webkit-text-stroke-width:0; }
   .contact-list a .k{ white-space:nowrap; color:var(--ink-soft); transition:color .3s var(--ease); }
   .contact-list a:hover .k,.contact-list a:focus-visible .k{ color:var(--yellow); }
@@ -468,6 +528,47 @@
   body.ready .hero-cta{ transition-delay:.42s; }
   body.ready .thumb-card{ transition-delay:.5s; }
 
+  /* ================= TRIANGULAR MESH ================= */
+  .mesh{ position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; display:block; }
+  .main{ position:relative; z-index:1; }
+
+  /* ================= CURSOR ================= */
+  .cur-dot,.cur-ring{
+    position:fixed; top:0; left:0; z-index:1000; pointer-events:none;
+    opacity:0; transition:opacity .3s var(--ease); will-change:transform;
+  }
+  html.cursor-on .cur-dot,html.cursor-on .cur-ring{ opacity:1; }
+  html.cursor-out .cur-dot,html.cursor-out .cur-ring{ opacity:0; }
+  .cur-dot{
+    width:7px; height:7px; margin:-3.5px 0 0 -3.5px; border-radius:50%;
+    background:var(--yellow); box-shadow:0 0 10px rgba(237,210,46,.6);
+  }
+  .cur-ring{ width:46px; height:46px; margin:-23px 0 0 -23px; }
+  .cur-ring polygon{
+    fill:rgba(237,210,46,0.05); stroke:var(--ink); stroke-width:1.4; opacity:.45;
+    transition:fill .3s var(--ease), opacity .3s var(--ease), stroke .3s var(--ease);
+  }
+  html.cursor-hot .cur-ring polygon{ fill:rgba(237,210,46,0.2); stroke:var(--yellow); opacity:.95; }
+  /* Only take over the pointer where there is a real one to take over. */
+  @media (hover:hover) and (pointer:fine){
+    html.cursor-on,html.cursor-on *{ cursor:none !important; }
+  }
+
+  /* ================= THEME TOGGLE ================= */
+  .theme-btn{
+    width:38px; height:38px; flex:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid var(--border-strong); color:var(--ink);
+    transition:background-color .25s var(--ease), color .25s var(--ease),
+               border-color .25s var(--ease), transform .25s var(--ease);
+  }
+  .theme-btn:hover{ background-color:var(--yellow); color:var(--on-yellow); border-color:var(--ink); transform:translateY(-2px); }
+  .theme-btn:active{ transform:translateY(0); }
+  .theme-btn svg{ width:17px; height:17px; display:block; }
+  .theme-btn .moon{ display:none; }
+  :root[data-theme="dark"] .theme-btn .sun{ display:none; }
+  :root[data-theme="dark"] .theme-btn .moon{ display:block; }
+
   /* ================= RESPONSIVE ================= */
   @media (min-width:1280px){
     .coords,.status-block{ display:block; }
@@ -504,7 +605,7 @@
     .menu-btn{ display:none; }
     .navtoggle{
       display:flex; align-items:center; justify-content:center;
-      background:var(--yellow); border:1px solid var(--ink); width:40px; height:40px;
+      background:var(--yellow); color:var(--on-yellow); border:1px solid var(--ink); width:40px; height:40px;
       font-family:var(--mono); font-size:15px; line-height:1; cursor:pointer;
       transition:transform .2s var(--ease);
     }
@@ -533,6 +634,8 @@
   /* Touch devices fire :hover on tap and leave it stuck; gate the big moves. */
   @media (hover:none){
     .proj-row:hover > *,.xp-panel:hover,.skill-cell:hover,.chip:hover,.thumb-card:hover{ transform:none; box-shadow:none; }
+    /* a tap leaves :hover latched on touch, so the toggle would stay filled */
+    .theme-btn:hover{ background-color:transparent; color:var(--ink); border-color:var(--border-strong); transform:none; }
   }
 
   /* ---- REDUCED MOTION ---- */
@@ -553,11 +656,14 @@
     .js .hero-media img{
       opacity:1 !important; transform:none !important;
     }
+    /* the mesh renders one still frame and the custom cursor is not mounted */
+    .cur-dot,.cur-ring{ display:none !important; }
   }
 
   /* ---- PRINT ---- */
   @media print{
-    .topbar,.sidebar,.ticker,.nav-scrim,.skip-link,.hero-cta,.thumb-card,.scan-line,.v-code,body::after{ display:none !important; }
+    .topbar,.sidebar,.ticker,.nav-scrim,.skip-link,.hero-cta,.thumb-card,.scan-line,.v-code,
+    body::after,.mesh,.cur-dot,.cur-ring{ display:none !important; }
     .main{ margin:0; padding:0; }
     .section{ padding:18px 0; break-inside:avoid; border-color:#999; }
     .hero{ min-height:0; }
@@ -570,6 +676,12 @@
 
 <a class="skip-link" href="#main">Skip to content</a>
 
+<canvas class="mesh" id="mesh" aria-hidden="true"></canvas>
+<div class="cur-dot" id="curDot" aria-hidden="true"></div>
+<svg class="cur-ring" id="curRing" viewBox="0 0 46 46" aria-hidden="true" focusable="false">
+  <polygon points="23,6 39,35 7,35"></polygon>
+</svg>
+
 <header class="topbar">
   <div class="tb-left">
     <a href="#top" class="logo" aria-label="Back to top">HC //</a>
@@ -581,6 +693,15 @@
       <b>NEW DELHI, INDIA</b><br>
       <span class="live">AVAILABLE FOR WORK</span>
     </div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <path d="M12 2.4v2.3M12 19.3v2.3M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.4 12h2.3M19.3 12h2.3M4.4 19.6l1.6-1.6M18 6l1.6-1.6"></path>
+      </svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M20.6 14.7A8.6 8.6 0 0 1 9.3 3.4a8.6 8.6 0 1 0 11.3 11.3z"></path>
+      </svg>
+    </button>
     <button class="navtoggle" id="navToggle" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">☰</button>
     <a href="#contact" class="menu-btn" aria-label="Jump to contact details">HIRE</a>
   </div>
@@ -1026,6 +1147,259 @@
     }
     graph.appendChild(frag);
   }
+
+  /* =====================================================================
+     THEME — toggle, OS following, and a short global cross-fade
+     ===================================================================== */
+  var root      = document.documentElement;
+  var themeBtn  = document.getElementById('themeBtn');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  var themeTimer = 0;
+  var meshRefresh = null;                  // assigned by the mesh below
+
+  function isDark(){ return root.dataset.theme === 'dark'; }
+
+  function syncTheme(){
+    var dark = isDark();
+    if(themeBtn){
+      themeBtn.setAttribute('aria-pressed', String(dark));
+      themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+    if(themeMeta) themeMeta.setAttribute('content', dark ? '#12120F' : '#C9C6BC');
+    if(meshRefresh) meshRefresh();
+  }
+  syncTheme();
+
+  if(themeBtn) themeBtn.addEventListener('click', function(){
+    root.classList.add('theming');
+    clearTimeout(themeTimer);
+    themeTimer = setTimeout(function(){ root.classList.remove('theming'); }, 560);
+    root.dataset.theme = isDark() ? 'light' : 'dark';
+    try { localStorage.setItem('hc-theme', root.dataset.theme); } catch(e){}
+    syncTheme();
+  });
+
+  // Keep following the OS until the visitor makes an explicit choice.
+  var osDark = window.matchMedia('(prefers-color-scheme: dark)');
+  var onOsTheme = function(e){
+    var saved = null;
+    try { saved = localStorage.getItem('hc-theme'); } catch(err){}
+    if(saved) return;
+    root.dataset.theme = e.matches ? 'dark' : 'light';
+    syncTheme();
+  };
+  if(osDark.addEventListener) osDark.addEventListener('change', onOsTheme);
+  else if(osDark.addListener) osDark.addListener(onOsTheme);
+
+  /* =====================================================================
+     POINTER — one listener feeds both the mesh and the cursor
+     ===================================================================== */
+  var ptrX = -9999, ptrY = -9999, ptrSeen = false;
+  var ptrHandlers = [];
+  window.addEventListener('pointermove', function(e){
+    ptrX = e.clientX; ptrY = e.clientY;
+    if(!ptrSeen){ ptrSeen = true; }
+    for(var i = 0; i < ptrHandlers.length; i++) ptrHandlers[i](e);
+  }, { passive:true });
+
+  /* =====================================================================
+     TRIANGULAR MESH — a drifting low-poly field on a canvas behind the page.
+     Triangles brighten near the pointer and decay back to the ground; in night
+     mode each one captures a hue as it ignites, so the pointer paints a trail
+     that fades. One fill per lit triangle, one stroke for the entire field.
+     ===================================================================== */
+  (function(){
+    var cv = document.getElementById('mesh');
+    if(!cv || !cv.getContext) return;
+    var c = cv.getContext('2d');
+    if(!c) return;
+
+    var W = 0, H = 0, cols = 0, rows = 0;
+    var pts = [], tris = [];
+    var raf = 0, running = false, elapsed = 0, last = 0;
+    var gx = -9999, gy = -9999;                    // trailing pointer for the glow
+    var lineLight = 'rgba(33,31,26,0.085)', lineDark = 'rgba(244,241,232,0.075)';
+    var line = lineLight;
+
+    meshRefresh = function(){ line = isDark() ? lineDark : lineLight; };
+    meshRefresh();
+
+    function lcg(seed){
+      return function(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    }
+
+    function build(){
+      W = window.innerWidth; H = window.innerHeight;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cv.width  = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+      cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      var cell = W < 560 ? 76 : (W < 1000 ? 92 : 112);
+      cols = Math.ceil(W / cell) + 1;
+      rows = Math.ceil(H / cell) + 1;
+
+      var rnd = lcg(20260918);
+      pts = [];
+      for(var j = 0; j <= rows; j++){
+        for(var i = 0; i <= cols; i++){
+          pts.push({
+            bx: i * cell - cell * 0.5,
+            by: j * cell - cell * 0.5,
+            ph: rnd() * Math.PI * 2,
+            am: cell * (0.10 + rnd() * 0.17),
+            sp: 0.10 + rnd() * 0.14,
+            x: 0, y: 0
+          });
+        }
+      }
+      tris = [];
+      var stride = cols + 1;
+      for(var jj = 0; jj < rows; jj++){
+        for(var ii = 0; ii < cols; ii++){
+          var a = jj * stride + ii, b = a + 1, d = a + stride, e = d + 1;
+          tris.push({ v:[a, b, e], g:0, h:0 });
+          tris.push({ v:[a, e, d], g:0, h:0 });
+        }
+      }
+    }
+
+    function draw(ms, animate){
+      var t = ms / 1000, dark = isDark(), i, p;
+
+      for(i = 0; i < pts.length; i++){
+        p = pts[i];
+        if(animate){
+          p.x = p.bx + Math.sin(t * p.sp + p.ph) * p.am;
+          p.y = p.by + Math.cos(t * p.sp * 0.83 + p.ph * 1.27) * p.am;
+        } else { p.x = p.bx; p.y = p.by; }
+      }
+
+      c.clearRect(0, 0, W, H);
+
+      if(animate && ptrSeen){
+        if(gx < -5000){ gx = ptrX; gy = ptrY; }
+        gx += (ptrX - gx) * 0.10;
+        gy += (ptrY - gy) * 0.10;
+
+        // night mode: a soft hue-drifting light trailing the cursor
+        if(dark){
+          var base = (t * 16) % 360;
+          var rg = c.createRadialGradient(gx, gy, 0, gx, gy, Math.max(W, H) * 0.30);
+          rg.addColorStop(0,    'hsla(' + ((base + 38) % 360)  + ',92%,60%,0.15)');
+          rg.addColorStop(0.45, 'hsla(' + ((base + 195) % 360) + ',82%,55%,0.055)');
+          rg.addColorStop(1,    'hsla(' + ((base + 195) % 360) + ',82%,55%,0)');
+          c.fillStyle = rg;
+          c.fillRect(0, 0, W, H);
+        }
+      }
+
+      if(animate){
+        var R = 240, R2 = R * R;
+        for(var k = 0; k < tris.length; k++){
+          var tr = tris[k];
+          var A = pts[tr.v[0]], B = pts[tr.v[1]], C = pts[tr.v[2]];
+          var cx = (A.x + B.x + C.x) / 3, cy = (A.y + B.y + C.y) / 3;
+          var target = 0;
+          if(ptrSeen){
+            var dx = cx - ptrX, dy = cy - ptrY, d2 = dx * dx + dy * dy;
+            if(d2 < R2){ target = 1 - Math.sqrt(d2) / R; target *= target; }
+          }
+          if(target > tr.g){
+            if(tr.g < 0.02) tr.h = (t * 52 + cx * 0.09) % 360;   // hue captured on ignition
+            tr.g += (target - tr.g) * 0.30;
+          } else {
+            tr.g *= 0.952;                                       // the fade
+          }
+          if(tr.g < 0.005){ tr.g = 0; continue; }
+
+          c.beginPath();
+          c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.lineTo(C.x, C.y); c.closePath();
+          c.fillStyle = dark
+            ? 'hsla(' + tr.h.toFixed(0) + ',90%,62%,' + (tr.g * 0.32).toFixed(3) + ')'
+            : 'rgba(237,210,46,' + (tr.g * 0.30).toFixed(3) + ')';
+          c.fill();
+        }
+      }
+
+      c.beginPath();
+      for(var m = 0; m < tris.length; m++){
+        var q = tris[m], P0 = pts[q.v[0]], P1 = pts[q.v[1]], P2 = pts[q.v[2]];
+        c.moveTo(P0.x, P0.y); c.lineTo(P1.x, P1.y); c.lineTo(P2.x, P2.y); c.closePath();
+      }
+      c.lineWidth = 1;
+      c.strokeStyle = line;
+      c.stroke();
+    }
+
+    function frame(now){
+      if(!last) last = now;
+      elapsed += Math.min(now - last, 50);   // clamp so a backgrounded tab cannot leap
+      last = now;
+      draw(elapsed, true);
+      raf = requestAnimationFrame(frame);
+    }
+    function start(){ if(running || reduced) return; running = true; last = 0; raf = requestAnimationFrame(frame); }
+    function stop(){ running = false; if(raf) cancelAnimationFrame(raf); raf = 0; }
+
+    var rt = 0;
+    window.addEventListener('resize', function(){
+      clearTimeout(rt);
+      rt = setTimeout(function(){ build(); if(!running) draw(elapsed, !reduced); }, 160);
+    }, { passive:true });
+
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden) stop(); else start();
+    });
+
+    build();
+    if(reduced) draw(0, false); else start();
+  })();
+
+  /* =====================================================================
+     CURSOR — an exact dot plus a lagging, rotating triangle ring.
+     Fine pointers only, and never when reduced motion is asked for.
+     ===================================================================== */
+  (function(){
+    var dot  = document.getElementById('curDot');
+    var ring = document.getElementById('curRing');
+    if(!dot || !ring || reduced) return;
+    if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+
+    root.classList.add('cursor-on', 'cursor-out');
+    var rx = 0, ry = 0, rot = 0, sc = 1, scTarget = 1, press = 1, started = false;
+
+    ptrHandlers.push(function(e){
+      if(!started){ started = true; rx = e.clientX; ry = e.clientY; root.classList.remove('cursor-out'); }
+      dot.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0)';
+    });
+
+    document.addEventListener('pointerover', function(e){
+      var el = e.target;
+      var hot = el && el.closest &&
+        el.closest('a,button,.chip,.proj-row,.stat-cell,.skill-cell,.xp-panel,.rank-cell');
+      scTarget = hot ? 1.8 : 1;
+      root.classList.toggle('cursor-hot', !!hot);
+    }, { passive:true });
+
+    window.addEventListener('pointerdown', function(){ press = 0.72; }, { passive:true });
+    window.addEventListener('pointerup',   function(){ press = 1; }, { passive:true });
+    document.addEventListener('pointerleave', function(){ root.classList.add('cursor-out'); });
+    document.addEventListener('pointerenter', function(){ if(started) root.classList.remove('cursor-out'); });
+
+    (function spin(){
+      if(!document.hidden && started){
+        rx  += (ptrX - rx) * 0.17;
+        ry  += (ptrY - ry) * 0.17;
+        rot += 0.4;
+        sc  += (scTarget * press - sc) * 0.14;
+        ring.style.transform =
+          'translate3d(' + rx.toFixed(2) + 'px,' + ry.toFixed(2) + 'px,0) rotate(' + rot.toFixed(1) + 'deg) scale(' + sc.toFixed(3) + ')';
+      }
+      requestAnimationFrame(spin);
+    })();
+  })();
 
   /* ---------- hero entrance ---------- */
   function ready(){ document.body.classList.add('ready'); }
